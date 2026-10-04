@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cubbon Corner Market</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;600;700&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#20241E; --paper:#FAF7F0; --panel:#FFFFFF; --line:#E3DDCC;
+  --accent:#C4791E; --accent-ink:#20241E; --leaf:#2B4A34; --muted:#726B5B; --danger:#A6402A;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){ --ink:#EDE9DD; --paper:#191A15; --panel:#22241D; --line:#3A3B31; --accent:#E0A343; --leaf:#7FAE8C; --muted:#A4A08F; --danger:#E08469; }
+}
+:root[data-theme="dark"]{ --ink:#EDE9DD; --paper:#191A15; --panel:#22241D; --line:#3A3B31; --accent:#E0A343; --leaf:#7FAE8C; --muted:#A4A08F; --danger:#E08469; }
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:'Work Sans',system-ui,sans-serif;font-size:15px;line-height:1.55;}
+h1,h2,h3{font-family:'Fraunces',serif;font-weight:600;margin:0;}
+button{font-family:inherit;cursor:pointer;}
+input,select,textarea{font-family:inherit;font-size:14px;}
+a{color:inherit;}
+.hidden{display:none !important;}
+::selection{background:var(--accent);color:#fff;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+
+header{position:sticky;top:0;z-index:5;background:var(--panel);border-bottom:1px solid var(--line);}
+.header-in{max-width:1080px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.brand{display:flex;flex-direction:column;}
+.brand strong{font-family:'Fraunces',serif;font-size:20px;}
+.brand span{font-size:12px;color:var(--muted);}
+.header-actions{display:flex;gap:14px;align-items:center;}
+.cart-btn{position:relative;background:var(--leaf);color:#fff;border:none;border-radius:4px;padding:9px 16px;font-weight:600;font-size:14px;}
+.cart-badge{position:absolute;top:-7px;right:-7px;background:var(--accent);color:#fff;font-size:11px;border-radius:20px;padding:1px 6px;font-weight:600;}
+nav.tabs{max-width:1080px;margin:0 auto;padding:0 20px;display:flex;gap:6px;}
+nav.tabs button{background:none;border:none;padding:12px 14px;font-size:14px;color:var(--muted);border-bottom:2px solid transparent;}
+nav.tabs button.active{color:var(--ink);border-color:var(--accent);font-weight:600;}
+
+main{max-width:1080px;margin:0 auto;padding:24px 20px 60px;}
+.hero{padding:8px 0 22px;border-bottom:1px solid var(--line);margin-bottom:22px;}
+.hero h1{font-size:28px;max-width:560px;}
+.hero p{color:var(--muted);margin-top:8px;max-width:480px;}
+
+.toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center;}
+.toolbar input[type=search]{flex:1;min-width:170px;padding:9px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);}
+.toolbar select{padding:9px 10px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.chip{padding:6px 13px;border:1px solid var(--line);border-radius:20px;font-size:13px;background:var(--panel);color:var(--muted);}
+.chip.active{background:var(--leaf);border-color:var(--leaf);color:#fff;}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column;}
+.thumb{height:120px;display:flex;align-items:center;justify-content:center;font-size:46px;}
+.card-body{padding:14px;display:flex;flex-direction:column;gap:6px;flex:1;}
+.card-body h3{font-size:16px;}
+.desc{font-size:13px;color:var(--muted);flex:1;}
+.meta-row{display:flex;justify-content:space-between;align-items:center;}
+.price{font-weight:600;font-size:15px;}
+.rating{font-size:12px;color:var(--muted);}
+.rating button{background:none;border:none;text-decoration:underline;color:var(--muted);font-size:12px;padding:0;}
+.add-btn{margin-top:6px;background:var(--accent);color:#20241E;border:none;border-radius:4px;padding:8px 10px;font-weight:600;font-size:13px;}
+.add-btn:hover{opacity:.9;}
+
+.empty{padding:50px 10px;text-align:center;color:var(--muted);}
+
+/* Cart drawer */
+.overlay{position:fixed;inset:0;background:rgba(10,12,8,.45);z-index:20;}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:100%;max-width:400px;background:var(--panel);z-index:21;display:flex;flex-direction:column;padding:20px;border-left:1px solid var(--line);}
+.drawer h2{font-size:19px;margin-bottom:14px;}
+.cart-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;}
+.cart-item{display:flex;gap:10px;align-items:center;border-bottom:1px solid var(--line);padding-bottom:10px;}
+.cart-item .ic{font-size:26px;}
+.cart-item .info{flex:1;}
+.cart-item .info small{color:var(--muted);}
+.qty{display:flex;align-items:center;gap:6px;}
+.qty button{width:24px;height:24px;border:1px solid var(--line);background:var(--paper);border-radius:3px;}
+.rm{background:none;border:none;color:var(--danger);font-size:12px;text-decoration:underline;}
+.cart-summary{border-top:1px solid var(--line);padding-top:14px;margin-top:10px;}
+.summary-row{display:flex;justify-content:space-between;font-size:14px;margin-bottom:6px;}
+.btn{padding:10px 16px;border-radius:4px;border:1px solid var(--leaf);background:var(--leaf);color:#fff;font-weight:600;font-size:14px;}
+.btn-block{width:100%;}
+.btn-ghost{background:none;color:var(--ink);border:1px solid var(--line);}
+.close-x{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;color:var(--muted);}
+
+/* Modals */
+.modal-overlay{position:fixed;inset:0;background:rgba(10,12,8,.5);display:flex;align-items:center;justify-content:center;padding:20px;z-index:30;}
+.modal{background:var(--panel);border:1px solid var(--line);border-radius:6px;width:100%;max-width:440px;max-height:88vh;overflow-y:auto;padding:24px;position:relative;}
+.field{margin-bottom:13px;}
+.field label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;}
+.field input,.field textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:4px;background:var(--paper);color:var(--ink);}
+.err{color:var(--danger);font-size:13px;min-height:18px;margin-top:4px;}
+.stars{font-size:20px;letter-spacing:2px;color:var(--accent);cursor:pointer;user-select:none;}
+.review{border-bottom:1px solid var(--line);padding:10px 0;font-size:13px;}
+.review strong{font-size:13px;}
+
+/* Order tracking */
+.timeline{display:flex;flex-direction:column;gap:0;margin:18px 0;}
+.tl-step{display:flex;gap:12px;align-items:flex-start;}
+.tl-dot{width:12px;height:12px;border-radius:50%;background:var(--line);margin-top:3px;flex:none;}
+.tl-step.done .tl-dot{background:var(--leaf);}
+.tl-line{width:2px;background:var(--line);flex:1;margin-left:5px;}
+.tl-step.done + .tl-connector{background:var(--leaf);}
+.tl-body{padding-bottom:18px;}
+.tl-body strong{display:block;font-size:14px;}
+.tl-body span{font-size:12px;color:var(--muted);}
+
+/* Support */
+.faq details{border:1px solid var(--line);border-radius:4px;padding:12px 14px;margin-bottom:8px;background:var(--panel);}
+.faq summary{cursor:pointer;font-weight:600;font-size:14px;}
+.faq p{margin:8px 0 0;color:var(--muted);font-size:13px;}
+.order-lookup{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.order-lookup input{flex:1;min-width:160px;padding:9px 11px;border:1px solid var(--line);border-radius:4px;background:var(--panel);color:var(--ink);}
+@media(max-width:480px){.header-in{padding:12px 14px;} main{padding:18px 14px 50px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-in">
+    <div class="brand"><strong>Cubbon Corner Market</strong><span>Neighbourhood grocer · Bengaluru</span></div>
+    <div class="header-actions">
+      <button class="cart-btn" id="cartBtn">Cart <span class="cart-badge hidden" id="cartCount">0</span></button>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="shop">Shop</button>
+    <button class="tab" data-tab="track">Track order</button>
+    <button class="tab" data-tab="support">Support</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-shop">
+    <div class="hero">
+      <h1>Fresh, local, delivered to your door.</h1>
+      <p>Everyday groceries and neighbourhood favourites from our Cubbon Park store — order online, we'll pack it fresh.</p>
+    </div>
+    <div class="toolbar">
+      <input type="search" id="search" placeholder="Search products">
+      <select id="sortSel">
+        <option value="default">Sort: Featured</option>
+        <option value="priceAsc">Price: Low to high</option>
+        <option value="priceDesc">Price: High to low</option>
+        <option value="rating">Rating: High to low</option>
+      </select>
+    </div>
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid"></div>
+    <div class="empty hidden" id="emptyMsg">No products match your search or filter.</div>
+  </section>
+
+  <section id="tab-track" class="hidden">
+    <h2 style="margin-bottom:14px;">Track your order</h2>
+    <div class="order-lookup">
+      <input id="orderIdInput" placeholder="Enter your order ID, e.g. CCM-1042">
+      <button class="btn" id="trackBtn">Track</button>
+    </div>
+    <div id="trackResult"></div>
+  </section>
+
+  <section id="tab-support" class="hidden">
+    <h2 style="margin-bottom:14px;">Customer support</h2>
+    <div class="faq" id="faqList"></div>
+    <h3 style="margin:22px 0 10px;font-size:16px;">Send us a message</h3>
+    <form id="supportForm">
+      <div class="field"><label>Your name</label><input id="supName" required></div>
+      <div class="field"><label>Email</label><input id="supEmail" type="email" required></div>
+      <div class="field"><label>Message</label><textarea id="supMsg" rows="3" required></textarea></div>
+      <div class="err" id="supErr"></div>
+      <button class="btn" type="submit">Send message</button>
+    </form>
+    <p id="supOk" class="hidden" style="color:var(--leaf);font-size:13px;margin-top:10px;">Message sent — we usually reply within a few hours.</p>
+  </section>
+</main>
+
+<div class="overlay hidden" id="cartOverlay"></div>
+<div class="drawer hidden" id="cartDrawer">
+  <button class="close-x" id="closeCart">✕</button>
+  <h2>Your cart</h2>
+  <div class="cart-list" id="cartList"></div>
+  <div class="cart-summary">
+    <div class="summary-row"><span>Subtotal</span><strong id="subtotal">₹0</strong></div>
+    <div class="summary-row"><span>Delivery</span><span id="deliveryFee">₹30</span></div>
+    <div class="summary-row" style="font-size:16px;"><strong>Total</strong><strong id="total">₹0</strong></div>
+    <button class="btn btn-block" id="checkoutBtn" style="margin-top:10px;">Checkout</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="checkoutOverlay">
+  <div class="modal">
+    <button class="close-x" id="closeCheckout">✕</button>
+    <h2 style="font-size:18px;margin-bottom:14px;">Delivery details</h2>
+    <form id="checkoutForm">
+      <div class="field"><label>Full name</label><input id="coName" required></div>
+      <div class="field"><label>Phone (10 digits)</label><input id="coPhone" required></div>
+      <div class="field"><label>Delivery address</label><textarea id="coAddress" rows="2" required></textarea></div>
+      <div class="err" id="coErr"></div>
+      <button class="btn btn-block" type="submit">Place order</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="confirmOverlay">
+  <div class="modal">
+    <h2 style="font-size:18px;">Order placed 🎉</h2>
+    <p style="color:var(--muted);font-size:14px;">Your order ID is <strong id="confirmId"></strong>. Save it to track delivery status.</p>
+    <button class="btn btn-block" id="confirmClose" style="margin-top:14px;">Continue shopping</button>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="reviewOverlay">
+  <div class="modal">
+    <button class="close-x" id="closeReview">✕</button>
+    <h2 id="reviewTitle" style="font-size:18px;margin-bottom:10px;"></h2>
+    <div id="reviewList"></div>
+    <h3 style="font-size:14px;margin:16px 0 8px;">Add a review</h3>
+    <form id="reviewForm">
+      <div class="stars" id="starPicker" data-val="0">☆☆☆☆☆</div>
+      <div class="field" style="margin-top:8px;"><label>Your name</label><input id="revName" required></div>
+      <div class="field"><label>Comment</label><textarea id="revText" rows="2" required></textarea></div>
+      <div class="err" id="revErr"></div>
+      <button class="btn" type="submit">Submit review</button>
+    </form>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+const PRODUCTS=[
+ {id:1,name:"Malnad Filter Coffee",cat:"Beverages",price:320,icon:"☕",desc:"Stone-ground arabica-chicory blend from a Chikmagalur estate."},
+ {id:2,name:"Sourdough Loaf",cat:"Bakery",price:180,icon:"🍞",desc:"48-hour fermented sourdough, baked fresh each morning."},
+ {id:3,name:"A2 Cow Ghee 500ml",cat:"Dairy",price:650,icon:"🧈",desc:"Bilona-method ghee from a small farm near Mandya."},
+ {id:4,name:"Nandini Toned Milk 1L",cat:"Dairy",price:58,icon:"🥛",desc:"Fresh toned milk, delivered chilled daily."},
+ {id:5,name:"Mixed Millet Dosa Batter",cat:"Grocery",price:120,icon:"🥞",desc:"Ready-to-cook batter with ragi, jowar and rice."},
+ {id:6,name:"Banana Chips (Nendran)",cat:"Snacks",price:90,icon:"🍌",desc:"Kerala-style banana chips, fried in coconut oil."},
+ {id:7,name:"Filter Kaapi Podi Cups",cat:"Beverages",price:210,icon:"🫖",desc:"Pre-portioned decoction cups for quick filter coffee."},
+ {id:8,name:"Heirloom Tomatoes 500g",cat:"Produce",price:65,icon:"🍅",desc:"Vine-ripened tomatoes from a Ramanagara farm."},
+ {id:9,name:"Organic Turmeric Powder",cat:"Grocery",price:95,icon:"🌶️",desc:"Sun-dried and stone-milled, no additives."},
+ {id:10,name:"Coconut Barfi Box",cat:"Snacks",price:150,icon:"🍬",desc:"Handmade coconut barfi from the store's own kitchen."},
+ {id:11,name:"Fresh Curry Leaves",cat:"Produce",price:20,icon:"🌿",desc:"Bunched daily from the backyard supplier garden."},
+ {id:12,name:"Areca Leaf Plates (Pack of 10)",cat:"Home",price:140,icon:"🍽️",desc:"Biodegradable plates pressed from fallen areca leaves."}
+];
+const FAQS=[
+ {q:"What are your delivery hours?",a:"We deliver daily between 8am and 9pm across a 5km radius of Cubbon Park."},
+ {q:"What is the delivery fee?",a:"A flat ₹30 on all orders. Free delivery on orders above ₹999."},
+ {q:"Can I cancel an order?",a:"Yes, within 10 minutes of placing it — message us on the Support tab with your order ID."},
+ {q:"Do you accept returns?",a:"Perishables can't be returned, but we'll replace or refund anything damaged or incorrect."}
+];
+const LS_CART="ccm_cart", LS_ORDERS="ccm_orders", LS_REVIEWS="ccm_reviews";
+const money=n=>"₹"+Number(n).toLocaleString("en-IN");
+
+function getCart(){return JSON.parse(localStorage.getItem(LS_CART)||"{}");}
+function setCart(c){localStorage.setItem(LS_CART, JSON.stringify(c));}
+function getOrders(){return JSON.parse(localStorage.getItem(LS_ORDERS)||"{}");}
+function setOrders(o){localStorage.setItem(LS_ORDERS, JSON.stringify(o));}
+function getReviews(){return JSON.parse(localStorage.getItem(LS_REVIEWS)||"{}");}
+function setReviews(r){localStorage.setItem(LS_REVIEWS, JSON.stringify(r));}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+
+function avgRating(pid){
+  const list=(getReviews()[pid]||[]);
+  const base=[4,5,4,5]; // gentle seed so new products don't show 0
+  const all=list.length?list.map(r=>r.stars):base.slice(0,2);
+  return (all.reduce((a,b)=>a+b,0)/all.length).toFixed(1);
+}
+
+/* ---- Tabs ---- */
+document.querySelectorAll("nav.tabs .tab").forEach(btn=>{
+  btn.addEventListener("click", ()=>{
+    document.querySelectorAll("nav.tabs .tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    ["shop","track","support"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("hidden", t!==btn.dataset.tab));
+  });
+});
+
+/* ---- Catalog ---- */
+const grid=document.getElementById("grid"), chips=document.getElementById("chips"), emptyMsg=document.getElementById("emptyMsg");
+const searchEl=document.getElementById("search"), sortSel=document.getElementById("sortSel");
+let activeCat="All";
+const cats=["All", ...new Set(PRODUCTS.map(p=>p.cat))];
+chips.innerHTML=cats.map(c=>`<button class="chip ${c==="All"?"active":""}" data-cat="${c}">${c}</button>`).join("");
+chips.addEventListener("click", e=>{
+  if(e.target.dataset.cat){
+    activeCat=e.target.dataset.cat;
+    chips.querySelectorAll(".chip").forEach(c=>c.classList.toggle("active", c.dataset.cat===activeCat));
+    renderGrid();
+  }
+});
+searchEl.addEventListener("input", renderGrid);
+sortSel.addEventListener("change", renderGrid);
+
+function renderGrid(){
+  const q=searchEl.value.trim().toLowerCase();
+  let list=PRODUCTS.filter(p=>(activeCat==="All"||p.cat===activeCat) && (!q||p.name.toLowerCase().includes(q)||p.desc.toLowerCase().includes(q)));
+  const sv=sortSel.value;
+  if(sv==="priceAsc") list.sort((a,b)=>a.price-b.price);
+  else if(sv==="priceDesc") list.sort((a,b)=>b.price-a.price);
+  else if(sv==="rating") list.sort((a,b)=>avgRating(b.id)-avgRating(a.id));
+  emptyMsg.classList.toggle("hidden", list.length>0);
+  grid.innerHTML=list.map(p=>`
+    <div class="card">
+      <div class="thumb" style="background:hsl(${(p.id*47)%360} 40% 90%);">${p.icon}</div>
+      <div class="card-body">
+        <h3>${esc(p.name)}</h3>
+        <p class="desc">${esc(p.desc)}</p>
+        <div class="rating">★ ${avgRating(p.id)} · <button data-review="${p.id}">reviews</button></div>
+        <div class="meta-row"><span class="price">${money(p.price)}</span></div>
+        <button class="add-btn" data-add="${p.id}">Add to cart</button>
+      </div>
+    </div>`).join("");
+}
+renderGrid();
+
+/* ---- Cart ---- */
+const cartBtn=document.getElementById("cartBtn"), cartOverlay=document.getElementById("cartOverlay"), cartDrawer=document.getElementById("cartDrawer");
+const cartCount=document.getElementById("cartCount"), cartList=document.getElementById("cartList");
+function openCart(){ cartOverlay.classList.remove("hidden"); cartDrawer.classList.remove("hidden"); renderCart(); }
+function closeCart(){ cartOverlay.classList.add("hidden"); cartDrawer.classList.add("hidden"); }
+cartBtn.addEventListener("click", openCart);
+document.getElementById("closeCart").addEventListener("click", closeCart);
+cartOverlay.addEventListener("click", closeCart);
+
+function addToCart(id){
+  const cart=getCart(); cart[id]=(cart[id]||0)+1; setCart(cart); refreshBadge();
+}
+function changeQty(id, delta){
+  const cart=getCart(); cart[id]=(cart[id]||0)+delta;
+  if(cart[id]<=0) delete cart[id];
+  setCart(cart); renderCart(); refreshBadge();
+}
+function removeItem(id){ const cart=getCart(); delete cart[id]; setCart(cart); renderCart(); refreshBadge(); }
+function refreshBadge(){
+  const cart=getCart(); const n=Object.values(cart).reduce((a,b)=>a+b,0);
+  cartCount.textContent=n; cartCount.classList.toggle("hidden", n===0);
+}
+function renderCart(){
+  const cart=getCart(); const ids=Object.keys(cart);
+  if(!ids.length){ cartList.innerHTML='<p style="color:var(--muted);font-size:13px;">Your cart is empty.</p>'; }
+  else{
+    cartList.innerHTML=ids.map(id=>{
+      const p=PRODUCTS.find(x=>x.id==id); const qty=cart[id];
+      return `<div class="cart-item"><span class="ic">${p.icon}</span><div class="info"><div>${esc(p.name)}</div><small>${money(p.price)} each</small></div>
+      <div class="qty"><button data-dec="${id}">−</button><span>${qty}</span><button data-inc="${id}">+</button></div>
+      <button class="rm" data-rm="${id}">Remove</button></div>`;
+    }).join("");
+  }
+  const subtotal=ids.reduce((sum,id)=>sum+PRODUCTS.find(x=>x.id==id).price*cart[id],0);
+  const delivery = ids.length ? (subtotal>=999?0:30) : 0;
+  document.getElementById("subtotal").textContent=money(subtotal);
+  document.getElementById("deliveryFee").textContent=delivery===0?"Free":money(delivery);
+  document.getElementById("total").textContent=money(subtotal+delivery);
+  document.getElementById("checkoutBtn").disabled = ids.length===0;
+}
+cartList.addEventListener("click", e=>{
+  if(e.target.dataset.inc) changeQty(e.target.dataset.inc, 1);
+  if(e.target.dataset.dec) changeQty(e.target.dataset.dec, -1);
+  if(e.target.dataset.rm) removeItem(e.target.dataset.rm);
+});
+grid.addEventListener("click", e=>{
+  if(e.target.dataset.add) addToCart(e.target.dataset.add);
+  if(e.target.dataset.review) openReview(e.target.dataset.review);
+});
+refreshBadge();
+
+/* ---- Checkout ---- */
+const checkoutOverlay=document.getElementById("checkoutOverlay");
+document.getElementById("checkoutBtn").addEventListener("click", ()=>{
+  if(!Object.keys(getCart()).length) return;
+  document.getElementById("coErr").textContent="";
+  checkoutOverlay.classList.remove("hidden");
+});
+document.getElementById("closeCheckout").addEventListener("click", ()=>checkoutOverlay.classList.add("hidden"));
+document.getElementById("checkoutForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const name=document.getElementById("coName").value.trim();
+  const phone=document.getElementById("coPhone").value.trim();
+  const address=document.getElementById("coAddress").value.trim();
+  const err=document.getElementById("coErr");
+  if(name.length<2){ err.textContent="Enter your full name."; return; }
+  if(!/^\d{10}$/.test(phone)){ err.textContent="Phone must be exactly 10 digits."; return; }
+  if(address.length<8){ err.textContent="Enter a complete delivery address."; return; }
+  const cart=getCart(); const ids=Object.keys(cart);
+  const subtotal=ids.reduce((s,id)=>s+PRODUCTS.find(x=>x.id==id).price*cart[id],0);
+  const delivery=subtotal>=999?0:30;
+  const orders=getOrders();
+  const orderId="CCM-"+(1000+Object.keys(orders).length+1);
+  orders[orderId]={name, phone, address, items:ids.map(id=>({id, qty:cart[id]})), total:subtotal+delivery, placedAt:Date.now(), stage:1};
+  setOrders(orders);
+  setCart({}); refreshBadge();
+  checkoutOverlay.classList.add("hidden"); closeCart();
+  document.getElementById("confirmId").textContent=orderId;
+  document.getElementById("confirmOverlay").classList.remove("hidden");
+  this.reset();
+});
+document.getElementById("confirmClose").addEventListener("click", ()=>document.getElementById("confirmOverlay").classList.add("hidden"));
+
+/* ---- Order tracking ---- */
+const STAGES=["Order placed","Packed at store","Out for delivery","Delivered"];
+document.getElementById("trackBtn").addEventListener("click", ()=>{
+  const id=document.getElementById("orderIdInput").value.trim().toUpperCase();
+  const orders=getOrders(); const order=orders[id];
+  const box=document.getElementById("trackResult");
+  if(!order){ box.innerHTML=`<p style="color:var(--danger);font-size:14px;">No order found with ID "${esc(id)}". Check the ID and try again.</p>`; return; }
+  const elapsedMin=(Date.now()-order.placedAt)/60000;
+  const stage=Math.min(3, Math.floor(elapsedMin/1)+1); // demo: progresses ~1 stage/min for visibility
+  box.innerHTML=`<p style="font-size:14px;margin-bottom:6px;">Order <strong>${id}</strong> — total ${money(order.total)}</p>
+  <div class="timeline">${STAGES.map((s,i)=>`<div class="tl-step ${i<=stage-1?'done':''}"><div class="tl-dot"></div><div class="tl-body"><strong>${s}</strong>${i===stage-1?'<span>Current status</span>':''}</div></div>`).join("")}</div>`;
+});
+
+/* ---- Support ---- */
+document.getElementById("faqList").innerHTML=FAQS.map(f=>`<details><summary>${esc(f.q)}</summary><p>${esc(f.a)}</p></details>`).join("");
+document.getElementById("supportForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const name=document.getElementById("supName").value.trim(), email=document.getElementById("supEmail").value.trim(), msg=document.getElementById("supMsg").value.trim();
+  const err=document.getElementById("supErr");
+  if(name.length<2){ err.textContent="Enter your name."; return; }
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent="Enter a valid email."; return; }
+  if(msg.length<5){ err.textContent="Tell us a bit more so we can help."; return; }
+  err.textContent="";
+  this.reset();
+  document.getElementById("supOk").classList.remove("hidden");
+});
+
+/* ---- Reviews ---- */
+const reviewOverlay=document.getElementById("reviewOverlay");
+let currentReviewPid=null;
+function openReview(pid){
+  currentReviewPid=pid;
+  const p=PRODUCTS.find(x=>x.id==pid);
+  document.getElementById("reviewTitle").textContent=p.name+" — reviews";
+  renderReviewList(pid);
+  document.getElementById("starPicker").dataset.val=0;
+  document.getElementById("starPicker").textContent="☆☆☆☆☆";
+  document.getElementById("revErr").textContent="";
+  reviewOverlay.classList.remove("hidden");
+}
+document.getElementById("closeReview").addEventListener("click", ()=>reviewOverlay.classList.add("hidden"));
+function renderReviewList(pid){
+  const list=(getReviews()[pid]||[]);
+  const box=document.getElementById("reviewList");
+  box.innerHTML = list.length ? list.map(r=>`<div class="review"><strong>${"★".repeat(r.stars)}${"☆".repeat(5-r.stars)} ${esc(r.name)}</strong><div>${esc(r.text)}</div></div>`).join("")
+    : '<p style="color:var(--muted);font-size:13px;">No reviews yet — be the first to share one.</p>';
+}
+const starPicker=document.getElementById("starPicker");
+starPicker.addEventListener("click", e=>{
+  const rect=starPicker.getBoundingClientRect();
+  const val=Math.ceil((e.clientX-rect.left)/(rect.width/5));
+  starPicker.dataset.val=val;
+  starPicker.textContent="★".repeat(val)+"☆".repeat(5-val);
+});
+document.getElementById("reviewForm").addEventListener("submit", function(e){
+  e.preventDefault();
+  const stars=Number(starPicker.dataset.val);
+  const name=document.getElementById("revName").value.trim();
+  const text=document.getElementById("revText").value.trim();
+  const err=document.getElementById("revErr");
+  if(!stars){ err.textContent="Tap a star rating."; return; }
+  if(name.length<2){ err.textContent="Enter your name."; return; }
+  if(text.length<3){ err.textContent="Write a short comment."; return; }
+  const reviews=getReviews();
+  reviews[currentReviewPid]=reviews[currentReviewPid]||[];
+  reviews[currentReviewPid].push({name, text, stars});
+  setReviews(reviews);
+  renderReviewList(currentReviewPid);
+  renderGrid();
+  this.reset(); starPicker.dataset.val=0; starPicker.textContent="☆☆☆☆☆";
+});
+})();
+</script>
+</body>
+</html>
